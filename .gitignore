@@ -1,0 +1,62 @@
+# macOS
+.DS_Store
+
+# Xcode user data & state
+xcuserdata/
+*.xcuserstate
+*.xccheckout
+*.xcscmblueprint
+
+# Xcode project/workspace
+*.xcodeproj/*
+!*.xcodeproj/project.pbxproj
+!*.xcodeproj/xcshareddata/
+!*.xcodeproj/project.xcworkspace/
+*.xcworkspace/contents.xcworkspacedata
+**/xcshareddata/WorkspaceSettings.xcsettings
+
+# Build artifacts
+build/
+DerivedData/
+*.ipa
+*.dSYM
+*.dSYM.zip
+*.gcno
+
+# Swift Playgrounds
+timeline.xctimeline
+playground.xcworkspace
+
+# Swift Package Manager
+.build/
+.swiftpm/
+Packages/
+Package.resolved
+
+# Test outputs & coverage
+*.xcresult
+*.xccov
+*.xccovreport
+
+# Fastlane
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/screenshots/**/*.png
+fastlane/test_output
+
+# Dependency managers
+Pods/
+Carthage/Build/
+Carthage/Checkouts/
+Dependencies/
+.accio/
+
+# Code Injection
+iOSInjectionProject/
+
+# Editors / temp
+.idea/
+.vscode/
+*.swp
+*.orig
+*.log
