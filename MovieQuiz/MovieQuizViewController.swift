@@ -1,5 +1,5 @@
 //
-//  ViewController.swift
+//  MovieQuizViewController.swift
 //  MovieQuiz
 //
 //  Created by Aleksei Frolov on 17. 10. 2025..
@@ -7,7 +7,7 @@
 
 import UIKit
 
-class ViewController: UIViewController {
+class MovieQuizViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
