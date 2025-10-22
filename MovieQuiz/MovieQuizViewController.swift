@@ -14,7 +14,7 @@ final class MovieQuizViewController: UIViewController {
         let label = UILabel()
         label.font = .ysDisplayMedium20
         label.textColor = .ypWhite
-        label.text = "Question"
+        label.text = L10n.questionTitle
         return label
     }()
     
@@ -49,7 +49,7 @@ final class MovieQuizViewController: UIViewController {
         let label = UILabel()
         label.font = .ysDisplayBold23
         label.textColor = .ypWhite
-        label.text = "Is the rating of this movie less than 5?"
+        label.text = L10n.questionText
         label.textAlignment = .center
         label.numberOfLines = 2
         return label
@@ -57,7 +57,7 @@ final class MovieQuizViewController: UIViewController {
     
     private let noButton: UIButton = {
         let button = UIButton()
-        button.setTitle("No", for: .normal)
+        button.setTitle(L10n.buttonNo, for: .normal)
         button.titleLabel?.font = .ysDisplayMedium20
         button.backgroundColor = .ypWhite
         button.setTitleColor(.ypBlack, for: .normal)
@@ -67,7 +67,7 @@ final class MovieQuizViewController: UIViewController {
     
     private let yesButton: UIButton = {
         let button = UIButton()
-        button.setTitle("Yes", for: .normal)
+        button.setTitle(L10n.buttonYes, for: .normal)
         button.titleLabel?.font = .ysDisplayMedium20
         button.backgroundColor = .ypWhite
         button.setTitleColor(.ypBlack, for: .normal)

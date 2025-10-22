@@ -1,0 +1,12 @@
+/* 
+  Localizable.strings
+  MovieQuiz
+
+  Created by Aleksei Frolov on 22. 10. 2025..
+  
+*/
+
+"question.title" = "Вопрос:";
+"question.text" = "Рейтинг этого фильма меньше чем 5?";
+"button.yes" = "Да";
+"button.no" = "Нет";
