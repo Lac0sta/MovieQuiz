@@ -9,7 +9,7 @@ import UIKit
 
 final class MovieQuizViewController: UIViewController {
     
-    // MARK: UI Elements
+    // MARK: - UI Elements
     private let questionTitleLabel: UILabel = {
         let label = UILabel()
         label.font = .ysDisplayMedium20
@@ -93,7 +93,65 @@ final class MovieQuizViewController: UIViewController {
         return stackView
     }()
     
-    // MARK: Lifecycle
+    // MARK: - Private Properties
+    private var currentQuestionIndex = 0
+    private var correctAnswersCount = 0
+    
+    // MARK: - Mock data
+    private let questions: [QuizQuestion] = [
+        QuizQuestion(
+            image: "The Godfather",
+            text: "Is the rating of this movie greater than 6?",
+            correctAnswer: true
+        ),
+        QuizQuestion(
+            image: "The Dark Knight",
+            text: "Is the rating of this movie greater than 6?",
+            correctAnswer: true
+        ),
+        QuizQuestion(
+            image: "Kill Bill",
+            text: "Is the rating of this movie greater than 6?",
+            correctAnswer: true
+        ),
+        QuizQuestion(
+            image: "The Avengers",
+            text: "Is the rating of this movie greater than 6?",
+            correctAnswer: true
+        ),
+        QuizQuestion(
+            image: "Deadpool",
+            text: "Is the rating of this movie greater than 6?",
+            correctAnswer: true
+        ),
+        QuizQuestion(
+            image: "The Green Knight",
+            text: "Is the rating of this movie greater than 6?",
+            correctAnswer: true
+        ),
+        QuizQuestion(
+            image: "Old",
+            text: "Is the rating of this movie greater than 6?",
+            correctAnswer: false
+        ),
+        QuizQuestion(
+            image: "The Ice Age Adventures of Buck Wild",
+            text: "Is the rating of this movie greater than 6?",
+            correctAnswer: false
+        ),
+        QuizQuestion(
+            image: "Tesla",
+            text: "Is the rating of this movie greater than 6?",
+            correctAnswer: false
+        ),
+        QuizQuestion(
+            image: "Vivarium",
+            text: "Is the rating of this movie greater than 6?",
+            correctAnswer: false
+        ),
+    ]
+    
+    // MARK: - Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
         
@@ -103,9 +161,28 @@ final class MovieQuizViewController: UIViewController {
         setupButtonsStackView()
         setupContentStackView()
         setupUI()
+        
+        let currentQuestion = questions[currentQuestionIndex]
+        let viewModel = convert(model: currentQuestion)
+        show(quiz: viewModel)
     }
     
-    // MARK: Setup Methods
+    // MARK: - Private Methods
+    private func convert(model: QuizQuestion) -> QuizStepViewModel {
+        return QuizStepViewModel(
+            image: UIImage(named: model.image) ?? UIImage(),
+            question: model.text,
+            questionNumber: "\(currentQuestionIndex + 1)/\(questions.count)"
+        )
+    }
+    
+    private func show(quiz step: QuizStepViewModel) {
+        imageView.image = step.image
+        questionLabel.text = step.question
+        questionNumberLabel.text = step.questionNumber
+    }
+    
+    // MARK: - Setup Methods
     private func setupLabelsStackView() {
         [questionTitleLabel, questionNumberLabel].forEach {
             labelsStackView.addArrangedSubview($0)
