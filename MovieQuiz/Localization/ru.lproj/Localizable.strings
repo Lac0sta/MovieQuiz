@@ -10,3 +10,6 @@
 "question.text" = "Рейтинг этого фильма меньше чем 5?";
 "button.yes" = "Да";
 "button.no" = "Нет";
+"result.title" = "Этот раунд окончен!";
+"result.text" = "Ваш результат";
+"restart.button" = "Сыграть ещё раз";

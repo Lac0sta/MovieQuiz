@@ -186,10 +186,52 @@ final class MovieQuizViewController: UIViewController {
         imageView.layer.borderWidth = 8
         
         if isCorrect {
+            correctAnswersCount += 1
             imageView.layer.borderColor = UIColor.ypGreen.cgColor
         } else {
             imageView.layer.borderColor = UIColor.ypRed.cgColor
         }
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+            self.showNextQuestionOrResults()
+        }
+    }
+    
+    private func showNextQuestionOrResults() {
+        imageView.layer.borderWidth = 0
+        
+        if currentQuestionIndex == questions.count - 1 {
+            let viewModel = QuizResultsViewModel(
+                title: L10n.resultTitle,
+                text: L10n.resultText + ": \(correctAnswersCount)/\(questions.count)",
+                buttonText: L10n.restartButton
+            )
+            
+            show(quiz: viewModel)
+        } else {
+            currentQuestionIndex += 1
+            
+            let nextQuestion = questions[currentQuestionIndex]
+            let viewModel = convert(model: nextQuestion)
+            
+            show(quiz: viewModel)
+        }
+    }
+    
+    private func show(quiz result: QuizResultsViewModel) {
+        let alert = UIAlertController(title: result.title, message: result.text, preferredStyle: .alert)
+        
+        let action = UIAlertAction(title: result.buttonText, style: .default) { _ in
+            self.currentQuestionIndex = 0
+            self.correctAnswersCount = 0
+            
+            let firstQuestion = self.questions[self.currentQuestionIndex]
+            let viewModel = self.convert(model: firstQuestion)
+            
+            self.show(quiz: viewModel)
+        }
+        alert.addAction(action)
+        present(alert, animated: true)
     }
     
     @objc private func noButtonTapped() {
