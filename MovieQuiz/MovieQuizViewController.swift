@@ -38,8 +38,6 @@ final class MovieQuizViewController: UIViewController {
         let imageView = UIImageView()
         imageView.layer.cornerRadius = 20
         imageView.layer.masksToBounds = true
-        imageView.layer.borderWidth = 8
-        imageView.layer.borderColor = UIColor.ypWhite.cgColor
         imageView.contentMode = .scaleToFill
         imageView.image = UIImage(named: "Placeholder")
         return imageView
@@ -62,6 +60,7 @@ final class MovieQuizViewController: UIViewController {
         button.backgroundColor = .ypWhite
         button.setTitleColor(.ypBlack, for: .normal)
         button.layer.cornerRadius = 15
+        button.addTarget(self, action: #selector(noButtonTapped), for: .touchUpInside)
         return button
     }()
     
@@ -72,6 +71,7 @@ final class MovieQuizViewController: UIViewController {
         button.backgroundColor = .ypWhite
         button.setTitleColor(.ypBlack, for: .normal)
         button.layer.cornerRadius = 15
+        button.addTarget(self, action: #selector(yesButtonTapped), for: .touchUpInside)
         return button
     }()
     
@@ -180,6 +180,30 @@ final class MovieQuizViewController: UIViewController {
         imageView.image = step.image
         questionLabel.text = step.question
         questionNumberLabel.text = step.questionNumber
+    }
+    
+    private func showAnswerResult(isCorrect: Bool) {
+        imageView.layer.borderWidth = 8
+        
+        if isCorrect {
+            imageView.layer.borderColor = UIColor.ypGreen.cgColor
+        } else {
+            imageView.layer.borderColor = UIColor.ypRed.cgColor
+        }
+    }
+    
+    @objc private func noButtonTapped() {
+        let currentQuestion = questions[currentQuestionIndex]
+        let givenAnswer = currentQuestion.correctAnswer
+        
+        showAnswerResult(isCorrect: givenAnswer == false)
+    }
+    
+    @objc private func yesButtonTapped() {
+        let currentQuestion = questions[currentQuestionIndex]
+        let givenAnswer = currentQuestion.correctAnswer
+        
+        showAnswerResult(isCorrect: givenAnswer == true)
     }
     
     // MARK: - Setup Methods
