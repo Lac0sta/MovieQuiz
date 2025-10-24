@@ -183,6 +183,7 @@ final class MovieQuizViewController: UIViewController {
     }
     
     private func showAnswerResult(isCorrect: Bool) {
+        answerButtons(isLocked: false)
         imageView.layer.borderWidth = 8
         
         if isCorrect {
@@ -192,12 +193,13 @@ final class MovieQuizViewController: UIViewController {
             imageView.layer.borderColor = UIColor.ypRed.cgColor
         }
         
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + Constants.timeoutForAnswer) {
             self.showNextQuestionOrResults()
         }
     }
     
     private func showNextQuestionOrResults() {
+        answerButtons(isLocked: true)
         imageView.layer.borderWidth = 0
         
         if currentQuestionIndex == questions.count - 1 {
@@ -232,6 +234,11 @@ final class MovieQuizViewController: UIViewController {
         }
         alert.addAction(action)
         present(alert, animated: true)
+    }
+    
+    private func answerButtons(isLocked: Bool) {
+        noButton.isEnabled = isLocked
+        yesButton.isEnabled = isLocked
     }
     
     @objc private func noButtonTapped() {
