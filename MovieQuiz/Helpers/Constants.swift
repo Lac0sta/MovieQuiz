@@ -10,4 +10,5 @@ import Foundation
 enum Constants {
     // MARK: - Quiz
     static let timeoutForAnswer = 1.0
+    static let questionsAmount = 10
 }

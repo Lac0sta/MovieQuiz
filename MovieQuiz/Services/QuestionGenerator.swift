@@ -1,0 +1,73 @@
+//
+//  QuestionGenerator.swift
+//  MovieQuiz
+//
+//  Created by Aleksei Frolov on 24. 10. 2025..
+//
+
+import Foundation
+
+final class QuestionGenerator {
+    
+    // MARK: - Mock data
+    private let questions: [QuizQuestion] = [
+        QuizQuestion(
+            image: "The Godfather",
+            text: "Is the rating of this movie greater than 6?",
+            correctAnswer: true
+        ),
+        QuizQuestion(
+            image: "The Dark Knight",
+            text: "Is the rating of this movie greater than 6?",
+            correctAnswer: true
+        ),
+        QuizQuestion(
+            image: "Kill Bill",
+            text: "Is the rating of this movie greater than 6?",
+            correctAnswer: true
+        ),
+        QuizQuestion(
+            image: "The Avengers",
+            text: "Is the rating of this movie greater than 6?",
+            correctAnswer: true
+        ),
+        QuizQuestion(
+            image: "Deadpool",
+            text: "Is the rating of this movie greater than 6?",
+            correctAnswer: true
+        ),
+        QuizQuestion(
+            image: "The Green Knight",
+            text: "Is the rating of this movie greater than 6?",
+            correctAnswer: true
+        ),
+        QuizQuestion(
+            image: "Old",
+            text: "Is the rating of this movie greater than 6?",
+            correctAnswer: false
+        ),
+        QuizQuestion(
+            image: "The Ice Age Adventures of Buck Wild",
+            text: "Is the rating of this movie greater than 6?",
+            correctAnswer: false
+        ),
+        QuizQuestion(
+            image: "Tesla",
+            text: "Is the rating of this movie greater than 6?",
+            correctAnswer: false
+        ),
+        QuizQuestion(
+            image: "Vivarium",
+            text: "Is the rating of this movie greater than 6?",
+            correctAnswer: false
+        ),
+    ]
+    
+    // MARK: - Public Methods
+    func requestNextQuestion() -> QuizQuestion? {
+        guard let index = (0..<questions.count).randomElement() else {
+            return nil
+        }
+        return questions[safe: index]
+    }
+}

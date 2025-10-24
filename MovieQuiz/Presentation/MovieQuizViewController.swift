@@ -94,62 +94,10 @@ final class MovieQuizViewController: UIViewController {
     }()
     
     // MARK: - Private Properties
+    private let questionGenerator: QuestionGenerator = QuestionGenerator()
+    private var currentQuestion: QuizQuestion?
     private var currentQuestionIndex = 0
     private var correctAnswersCount = 0
-    
-    // MARK: - Mock data
-    private let questions: [QuizQuestion] = [
-        QuizQuestion(
-            image: "The Godfather",
-            text: "Is the rating of this movie greater than 6?",
-            correctAnswer: true
-        ),
-        QuizQuestion(
-            image: "The Dark Knight",
-            text: "Is the rating of this movie greater than 6?",
-            correctAnswer: true
-        ),
-        QuizQuestion(
-            image: "Kill Bill",
-            text: "Is the rating of this movie greater than 6?",
-            correctAnswer: true
-        ),
-        QuizQuestion(
-            image: "The Avengers",
-            text: "Is the rating of this movie greater than 6?",
-            correctAnswer: true
-        ),
-        QuizQuestion(
-            image: "Deadpool",
-            text: "Is the rating of this movie greater than 6?",
-            correctAnswer: true
-        ),
-        QuizQuestion(
-            image: "The Green Knight",
-            text: "Is the rating of this movie greater than 6?",
-            correctAnswer: true
-        ),
-        QuizQuestion(
-            image: "Old",
-            text: "Is the rating of this movie greater than 6?",
-            correctAnswer: false
-        ),
-        QuizQuestion(
-            image: "The Ice Age Adventures of Buck Wild",
-            text: "Is the rating of this movie greater than 6?",
-            correctAnswer: false
-        ),
-        QuizQuestion(
-            image: "Tesla",
-            text: "Is the rating of this movie greater than 6?",
-            correctAnswer: false
-        ),
-        QuizQuestion(
-            image: "Vivarium",
-            text: "Is the rating of this movie greater than 6?",
-            correctAnswer: false
-        ),
-    ]
     
     // MARK: - Lifecycle
     override func viewDidLoad() {
@@ -162,9 +110,11 @@ final class MovieQuizViewController: UIViewController {
         setupContentStackView()
         setupUI()
         
-        let currentQuestion = questions[currentQuestionIndex]
-        let viewModel = convert(model: currentQuestion)
-        show(quiz: viewModel)
+        if let firstQuestion = questionGenerator.requestNextQuestion() {
+            currentQuestion = firstQuestion
+            let viewModel = convert(model: firstQuestion)
+            show(quiz: viewModel)
+        }
     }
     
     // MARK: - Private Methods
@@ -172,7 +122,7 @@ final class MovieQuizViewController: UIViewController {
         return QuizStepViewModel(
             image: UIImage(named: model.image) ?? UIImage(),
             question: model.text,
-            questionNumber: "\(currentQuestionIndex + 1)/\(questions.count)"
+            questionNumber: "\(currentQuestionIndex + 1)/\(Constants.questionsAmount)"
         )
     }
     
@@ -193,7 +143,8 @@ final class MovieQuizViewController: UIViewController {
             imageView.layer.borderColor = UIColor.ypRed.cgColor
         }
         
-        DispatchQueue.main.asyncAfter(deadline: .now() + Constants.timeoutForAnswer) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + Constants.timeoutForAnswer) { [weak self] in
+            guard let self = self else { return }
             self.showNextQuestionOrResults()
         }
     }
@@ -202,10 +153,10 @@ final class MovieQuizViewController: UIViewController {
         answerButtons(isLocked: true)
         imageView.layer.borderWidth = 0
         
-        if currentQuestionIndex == questions.count - 1 {
+        if currentQuestionIndex == Constants.questionsAmount - 1 {
             let viewModel = QuizResultsViewModel(
                 title: L10n.resultTitle,
-                text: L10n.resultText + ": \(correctAnswersCount)/\(questions.count)",
+                text: L10n.resultText + ": \(correctAnswersCount)/\(Constants.questionsAmount)",
                 buttonText: L10n.restartButton
             )
             
@@ -213,24 +164,27 @@ final class MovieQuizViewController: UIViewController {
         } else {
             currentQuestionIndex += 1
             
-            let nextQuestion = questions[currentQuestionIndex]
-            let viewModel = convert(model: nextQuestion)
-            
-            show(quiz: viewModel)
+            if let nextQuestion = questionGenerator.requestNextQuestion() {
+                currentQuestion = nextQuestion
+                let viewModel = convert(model: nextQuestion)
+                show(quiz: viewModel)
+            }
         }
     }
     
     private func show(quiz result: QuizResultsViewModel) {
         let alert = UIAlertController(title: result.title, message: result.text, preferredStyle: .alert)
         
-        let action = UIAlertAction(title: result.buttonText, style: .default) { _ in
+        let action = UIAlertAction(title: result.buttonText, style: .default) { [weak self] _ in
+            guard let self = self else { return }
             self.currentQuestionIndex = 0
             self.correctAnswersCount = 0
             
-            let firstQuestion = self.questions[self.currentQuestionIndex]
-            let viewModel = self.convert(model: firstQuestion)
-            
-            self.show(quiz: viewModel)
+            if let firstQuestion = self.questionGenerator.requestNextQuestion() {
+                self.currentQuestion = firstQuestion
+                let viewModel = self.convert(model: firstQuestion)
+                self.show(quiz: viewModel)
+            }
         }
         alert.addAction(action)
         present(alert, animated: true)
@@ -242,14 +196,14 @@ final class MovieQuizViewController: UIViewController {
     }
     
     @objc private func noButtonTapped() {
-        let currentQuestion = questions[currentQuestionIndex]
+        guard let currentQuestion = currentQuestion else { return }
         let givenAnswer = currentQuestion.correctAnswer
         
         showAnswerResult(isCorrect: givenAnswer == false)
     }
     
     @objc private func yesButtonTapped() {
-        let currentQuestion = questions[currentQuestionIndex]
+        guard let currentQuestion = currentQuestion else { return }
         let givenAnswer = currentQuestion.correctAnswer
         
         showAnswerResult(isCorrect: givenAnswer == true)
