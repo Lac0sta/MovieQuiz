@@ -7,7 +7,7 @@
 
 import UIKit
 
-final class MovieQuizViewController: UIViewController {
+final class MovieQuizViewController: UIViewController, QuestionGeneratorDelegate {
     
     // MARK: - UI Elements
     private let questionTitleLabel: UILabel = {
@@ -94,7 +94,7 @@ final class MovieQuizViewController: UIViewController {
     }()
     
     // MARK: - Private Properties
-    private let questionGenerator: QuestionGenerator = QuestionGenerator()
+    private var questionGenerator: QuestionGeneratorProtocol?
     private var currentQuestion: QuizQuestion?
     private var currentQuestionIndex = 0
     private var correctAnswersCount = 0
@@ -110,11 +110,11 @@ final class MovieQuizViewController: UIViewController {
         setupContentStackView()
         setupUI()
         
-        if let firstQuestion = questionGenerator.requestNextQuestion() {
-            currentQuestion = firstQuestion
-            let viewModel = convert(model: firstQuestion)
-            show(quiz: viewModel)
-        }
+        let questionGenerator = QuestionGenerator()
+        questionGenerator.delegate = self
+        self.questionGenerator = questionGenerator
+        
+        questionGenerator.requestNextQuestion()
     }
     
     // MARK: - Private Methods
@@ -163,12 +163,7 @@ final class MovieQuizViewController: UIViewController {
             show(quiz: viewModel)
         } else {
             currentQuestionIndex += 1
-            
-            if let nextQuestion = questionGenerator.requestNextQuestion() {
-                currentQuestion = nextQuestion
-                let viewModel = convert(model: nextQuestion)
-                show(quiz: viewModel)
-            }
+            questionGenerator?.requestNextQuestion()
         }
     }
     
@@ -179,12 +174,7 @@ final class MovieQuizViewController: UIViewController {
             guard let self = self else { return }
             self.currentQuestionIndex = 0
             self.correctAnswersCount = 0
-            
-            if let firstQuestion = self.questionGenerator.requestNextQuestion() {
-                self.currentQuestion = firstQuestion
-                let viewModel = self.convert(model: firstQuestion)
-                self.show(quiz: viewModel)
-            }
+            self.questionGenerator?.requestNextQuestion()
         }
         alert.addAction(action)
         present(alert, animated: true)
@@ -207,6 +197,18 @@ final class MovieQuizViewController: UIViewController {
         let givenAnswer = currentQuestion.correctAnswer
         
         showAnswerResult(isCorrect: givenAnswer == true)
+    }
+    
+    func didReceiveNextQuestion(question: QuizQuestion?) {
+        guard let question = question else { return }
+        
+        currentQuestion = question
+        let viewModel = convert(model: question)
+        
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
+            self.show(quiz: viewModel)
+        }
     }
     
     // MARK: - Setup Methods

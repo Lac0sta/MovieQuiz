@@ -7,7 +7,10 @@
 
 import Foundation
 
-final class QuestionGenerator {
+final class QuestionGenerator: QuestionGeneratorProtocol {
+    
+    // MARK: - Delegate
+    weak var delegate: QuestionGeneratorDelegate?
     
     // MARK: - Mock data
     private let questions: [QuizQuestion] = [
@@ -63,11 +66,13 @@ final class QuestionGenerator {
         ),
     ]
     
-    // MARK: - Public Methods
-    func requestNextQuestion() -> QuizQuestion? {
+    // MARK: - Methods
+    func requestNextQuestion() {
         guard let index = (0..<questions.count).randomElement() else {
-            return nil
+            delegate?.didReceiveNextQuestion(question: nil)
+            return
         }
-        return questions[safe: index]
+        let question = questions[safe: index]
+        delegate?.didReceiveNextQuestion(question: question)
     }
 }
