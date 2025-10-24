@@ -96,6 +96,7 @@ final class MovieQuizViewController: UIViewController, QuestionGeneratorDelegate
     // MARK: - Private Properties
     private var questionGenerator: QuestionGeneratorProtocol?
     private var currentQuestion: QuizQuestion?
+    private lazy var alertPresenter = AlertPresenter(viewController: self)
     private var currentQuestionIndex = 0
     private var correctAnswersCount = 0
     
@@ -154,35 +155,30 @@ final class MovieQuizViewController: UIViewController, QuestionGeneratorDelegate
         imageView.layer.borderWidth = 0
         
         if currentQuestionIndex == Constants.questionsAmount - 1 {
-            let viewModel = QuizResultsViewModel(
+            let alertModel = AlertModel(
                 title: L10n.resultTitle,
                 text: L10n.resultText + ": \(correctAnswersCount)/\(Constants.questionsAmount)",
                 buttonText: L10n.restartButton
-            )
+            ) { [weak self] in
+                self?.restartQuiz()
+            }
             
-            show(quiz: viewModel)
+            alertPresenter.showAlert(model: alertModel)
         } else {
             currentQuestionIndex += 1
             questionGenerator?.requestNextQuestion()
         }
     }
     
-    private func show(quiz result: QuizResultsViewModel) {
-        let alert = UIAlertController(title: result.title, message: result.text, preferredStyle: .alert)
-        
-        let action = UIAlertAction(title: result.buttonText, style: .default) { [weak self] _ in
-            guard let self = self else { return }
-            self.currentQuestionIndex = 0
-            self.correctAnswersCount = 0
-            self.questionGenerator?.requestNextQuestion()
-        }
-        alert.addAction(action)
-        present(alert, animated: true)
-    }
-    
     private func answerButtons(isLocked: Bool) {
         noButton.isEnabled = isLocked
         yesButton.isEnabled = isLocked
+    }
+    
+    private func restartQuiz() {
+        currentQuestionIndex = 0
+        correctAnswersCount = 0
+        questionGenerator?.requestNextQuestion()
     }
     
     @objc private func noButtonTapped() {
