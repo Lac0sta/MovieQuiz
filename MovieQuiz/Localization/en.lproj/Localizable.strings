@@ -12,4 +12,7 @@
 "button.no" = "No";
 "result.title" = "This round is over!";
 "result.text" = "Your result";
+"result.total" = "Total quizzes played";
+"result.record" = "Record";
+"result.accuracy" = "Average accuracy";
 "restart.button" = "Play again";

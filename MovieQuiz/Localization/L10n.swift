@@ -14,5 +14,8 @@ enum L10n {
     static var buttonNo: String { NSLocalizedString("button.no", comment: "") }
     static var resultTitle: String { NSLocalizedString("result.title", comment: "") }
     static var resultText: String { NSLocalizedString("result.text", comment: "") }
+    static var resultTotal: String { NSLocalizedString("result.total", comment: "") }
+    static var resultRecord: String { NSLocalizedString("result.record", comment: "") }
+    static var resultAccuracy: String { NSLocalizedString("result.accuracy", comment: "") }
     static var restartButton: String { NSLocalizedString("restart.button", comment: "") }
 }

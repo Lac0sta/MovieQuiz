@@ -12,4 +12,7 @@
 "button.no" = "Нет";
 "result.title" = "Этот раунд окончен!";
 "result.text" = "Ваш результат";
+"result.total" = "Количество сыгранных квизов";
+"result.record" = "Рекорд";
+"result.accuracy" = "Средняя точность";
 "restart.button" = "Сыграть ещё раз";

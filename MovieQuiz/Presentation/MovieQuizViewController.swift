@@ -97,6 +97,7 @@ final class MovieQuizViewController: UIViewController, QuestionGeneratorDelegate
     private var questionGenerator: QuestionGeneratorProtocol?
     private var currentQuestion: QuizQuestion?
     private lazy var alertPresenter = AlertPresenter(viewController: self)
+    private var statisticsService: StatisticsServiceProtocol = StatisticsService()
     private var currentQuestionIndex = 0
     private var correctAnswersCount = 0
     
@@ -155,9 +156,16 @@ final class MovieQuizViewController: UIViewController, QuestionGeneratorDelegate
         imageView.layer.borderWidth = 0
         
         if currentQuestionIndex == Constants.questionsAmount - 1 {
+            statisticsService.store(correct: correctAnswersCount, total: Constants.questionsAmount)
+            
             let alertModel = AlertModel(
                 title: L10n.resultTitle,
-                text: L10n.resultText + ": \(correctAnswersCount)/\(Constants.questionsAmount)",
+                text: """
+                \(L10n.resultText): \(correctAnswersCount)/\(Constants.questionsAmount)
+                \(L10n.resultTotal): \(statisticsService.gamesCount)
+                \(L10n.resultRecord): \(statisticsService.bestGame.correct)/\(Constants.questionsAmount) (\(statisticsService.bestGame.date.dateTimeString))
+                \(L10n.resultAccuracy): \(String(format: "%.2f", statisticsService.totalAccuracy))%
+                """,
                 buttonText: L10n.restartButton
             ) { [weak self] in
                 self?.restartQuiz()
