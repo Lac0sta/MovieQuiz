@@ -8,5 +8,6 @@
 import Foundation
 
 protocol QuestionGeneratorProtocol {
+    func loadData()
     func requestNextQuestion()
 }

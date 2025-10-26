@@ -112,17 +112,16 @@ final class MovieQuizViewController: UIViewController, QuestionGeneratorDelegate
         setupContentStackView()
         setupUI()
         
-        let questionGenerator = QuestionGenerator()
-        questionGenerator.delegate = self
+        let questionGenerator = QuestionGenerator(moviesLoader: MoviesLoader(), delegate: self)
         self.questionGenerator = questionGenerator
         
-        questionGenerator.requestNextQuestion()
+        questionGenerator.loadData()
     }
     
     // MARK: - Private Methods
     private func convert(model: QuizQuestion) -> QuizStepViewModel {
         return QuizStepViewModel(
-            image: UIImage(named: model.image) ?? UIImage(),
+            image: UIImage(data: model.image) ?? UIImage(),
             question: model.text,
             questionNumber: "\(currentQuestionIndex + 1)/\(Constants.questionsAmount)"
         )
@@ -213,6 +212,14 @@ final class MovieQuizViewController: UIViewController, QuestionGeneratorDelegate
             guard let self = self else { return }
             self.show(quiz: viewModel)
         }
+    }
+    
+    func didLoadDataFromServer() {
+        questionGenerator?.requestNextQuestion()
+    }
+    
+    func didFailToLoadData(with error: Error) {
+        // TO DO
     }
     
     // MARK: - Setup Methods

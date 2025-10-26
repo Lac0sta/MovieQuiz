@@ -11,4 +11,11 @@ enum Constants {
     // MARK: - Quiz
     static let timeoutForAnswer = 1.0
     static let questionsAmount = 10
+    
+    // MARK: - API
+    enum API {
+        static let baseURL = "https://tv-api.com/en/API/"
+        static let top250MoviesPath = "Top250Movies"
+        static let apiKey = "k_zcuw1ytf"
+    }
 }
