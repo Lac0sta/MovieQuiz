@@ -84,6 +84,12 @@ final class MovieQuizViewController: UIViewController, QuestionGeneratorDelegate
         return stackView
     }()
     
+    private let activityIndicator: UIActivityIndicatorView = {
+        let indicator = UIActivityIndicatorView(style: .large)
+        indicator.isHidden = true
+        return indicator
+    }()
+    
     private let contentStackView: UIStackView = {
         let stackView = UIStackView()
         stackView.axis = .vertical
@@ -115,6 +121,7 @@ final class MovieQuizViewController: UIViewController, QuestionGeneratorDelegate
         let questionGenerator = QuestionGenerator(moviesLoader: MoviesLoader(), delegate: self)
         self.questionGenerator = questionGenerator
         
+        showActivityIndicator()
         questionGenerator.loadData()
     }
     
@@ -188,6 +195,16 @@ final class MovieQuizViewController: UIViewController, QuestionGeneratorDelegate
         questionGenerator?.requestNextQuestion()
     }
     
+    private func showActivityIndicator() {
+        activityIndicator.isHidden = false
+        activityIndicator.startAnimating()
+    }
+    
+    private func hideActivityIndicator() {
+        activityIndicator.stopAnimating()
+        activityIndicator.isHidden = true
+    }
+    
     @objc private func noButtonTapped() {
         guard let currentQuestion = currentQuestion else { return }
         let givenAnswer = currentQuestion.correctAnswer
@@ -215,6 +232,7 @@ final class MovieQuizViewController: UIViewController, QuestionGeneratorDelegate
     }
     
     func didLoadDataFromServer() {
+        hideActivityIndicator()
         questionGenerator?.requestNextQuestion()
     }
     
@@ -254,14 +272,19 @@ final class MovieQuizViewController: UIViewController, QuestionGeneratorDelegate
     }
     
     private func setupUI() {
-        view.addSubview(contentStackView)
-        contentStackView.translatesAutoresizingMaskIntoConstraints = false
+        [contentStackView, activityIndicator].forEach {
+            $0.translatesAutoresizingMaskIntoConstraints = false
+            view.addSubview($0)
+        }
         
         NSLayoutConstraint.activate([
             contentStackView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 10),
             contentStackView.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 20),
             contentStackView.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -20),
-            contentStackView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor)
+            contentStackView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor),
+            
+            activityIndicator.centerXAnchor.constraint(equalTo: view.safeAreaLayoutGuide.centerXAnchor),
+            activityIndicator.centerYAnchor.constraint(equalTo: view.safeAreaLayoutGuide.centerYAnchor)
         ])
     }
 }
