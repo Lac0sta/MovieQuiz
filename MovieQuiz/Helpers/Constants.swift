@@ -11,6 +11,7 @@ enum Constants {
     // MARK: - Quiz
     static let timeoutForAnswer = 1.0
     static let questionsAmount = 10
+    static let ratingThresholds: [Float] = [5, 6, 7, 8]
     
     // MARK: - API
     enum API {

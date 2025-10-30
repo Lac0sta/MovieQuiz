@@ -7,7 +7,7 @@
 */
 
 "question.title" = "Вопрос:";
-"question.text" = "Рейтинг этого фильма меньше чем 5?";
+"question.text" = "Рейтинг этого фильма";
 "button.yes" = "Да";
 "button.no" = "Нет";
 "result.title" = "Этот раунд окончен!";
@@ -19,3 +19,5 @@
 "error.title" = "Что-то пошло не так(";
 "error.message" = "Невозможно загрузить данные";
 "error.button" = "Попробовать ещё раз";
+"question.lessThan" = "меньше чем";
+"question.greaterThan" = "больше чем";

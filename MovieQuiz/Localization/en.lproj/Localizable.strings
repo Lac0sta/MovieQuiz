@@ -7,7 +7,7 @@
 */
 
 "question.title" = "Question:";
-"question.text" = "Is the rating of this movie less than 5?";
+"question.text" = "Is the rating of this movie";
 "button.yes" = "Yes";
 "button.no" = "No";
 "result.title" = "This round is over!";
@@ -19,3 +19,5 @@
 "error.title" = "Something went wrong(";
 "error.message" = "Unable to load data";
 "error.button" = "Try again";
+"question.lessThan" = "less than";
+"question.greaterThan" = "greater than";

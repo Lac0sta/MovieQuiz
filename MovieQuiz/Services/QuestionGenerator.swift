@@ -52,8 +52,11 @@ final class QuestionGenerator: QuestionGeneratorProtocol {
             }
             
             let rating = Float(movie.rating) ?? 0
-            let text = L10n.questionText
-            let correctAnswer = rating < 5
+            let ratingThrashold = Constants.ratingThresholds.randomElement() ?? 5
+            let isLessOrGreater = Bool.random()
+            let comparisonText = isLessOrGreater ? L10n.questionLessThan : L10n.questionGreaterThan
+            let text = "\(L10n.questionText)\n\(comparisonText) \(Int(ratingThrashold))?"
+            let correctAnswer = isLessOrGreater ? (rating < ratingThrashold) : (rating > ratingThrashold)
             
             let question = QuizQuestion(
                 image: imageData,

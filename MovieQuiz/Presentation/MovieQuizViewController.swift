@@ -47,7 +47,6 @@ final class MovieQuizViewController: UIViewController, QuestionGeneratorDelegate
         let label = UILabel()
         label.font = .ysDisplayBold23
         label.textColor = .ypWhite
-        label.text = L10n.questionText
         label.textAlignment = .center
         label.numberOfLines = 2
         return label

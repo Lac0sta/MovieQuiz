@@ -21,4 +21,6 @@ enum L10n {
     static var errorTitle: String { NSLocalizedString("error.title", comment: "") }
     static var errorMessage: String { NSLocalizedString("error.message", comment: "") }
     static var errorButton: String { NSLocalizedString("error.button", comment: "") }
+    static var questionLessThan: String { NSLocalizedString("question.lessThan", comment: "") }
+    static var questionGreaterThan: String { NSLocalizedString("question.greaterThan", comment: "") }
 }
