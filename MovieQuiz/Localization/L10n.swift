@@ -18,4 +18,7 @@ enum L10n {
     static var resultRecord: String { NSLocalizedString("result.record", comment: "") }
     static var resultAccuracy: String { NSLocalizedString("result.accuracy", comment: "") }
     static var restartButton: String { NSLocalizedString("restart.button", comment: "") }
+    static var errorTitle: String { NSLocalizedString("error.title", comment: "") }
+    static var errorMessage: String { NSLocalizedString("error.message", comment: "") }
+    static var errorButton: String { NSLocalizedString("error.button", comment: "") }
 }

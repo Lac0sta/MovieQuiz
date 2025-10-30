@@ -16,3 +16,6 @@
 "result.record" = "Рекорд";
 "result.accuracy" = "Средняя точность";
 "restart.button" = "Сыграть ещё раз";
+"error.title" = "Что-то пошло не так(";
+"error.message" = "Невозможно загрузить данные";
+"error.button" = "Попробовать ещё раз";

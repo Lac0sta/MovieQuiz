@@ -16,3 +16,6 @@
 "result.record" = "Record";
 "result.accuracy" = "Average accuracy";
 "restart.button" = "Play again";
+"error.title" = "Something went wrong(";
+"error.message" = "Unable to load data";
+"error.button" = "Try again";

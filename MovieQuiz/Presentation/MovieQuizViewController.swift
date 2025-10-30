@@ -205,6 +205,24 @@ final class MovieQuizViewController: UIViewController, QuestionGeneratorDelegate
         activityIndicator.isHidden = true
     }
     
+    private func showNetworkError(message: String) {
+        hideActivityIndicator()
+        
+        let alertModel = AlertModel(
+            title: L10n.errorTitle,
+            text: "\(L10n.errorMessage):\n\(message)",
+            buttonText: L10n.restartButton
+        ) { [weak self] in
+            guard let self = self else { return }
+            
+            self.currentQuestionIndex = 0
+            self.correctAnswersCount = 0
+            self.questionGenerator?.requestNextQuestion()
+        }
+        
+        alertPresenter.showAlert(model: alertModel)
+    }
+    
     @objc private func noButtonTapped() {
         guard let currentQuestion = currentQuestion else { return }
         let givenAnswer = currentQuestion.correctAnswer
@@ -237,7 +255,7 @@ final class MovieQuizViewController: UIViewController, QuestionGeneratorDelegate
     }
     
     func didFailToLoadData(with error: Error) {
-        // TO DO
+        showNetworkError(message: error.localizedDescription)
     }
     
     // MARK: - Setup Methods
