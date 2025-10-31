@@ -7,7 +7,7 @@
 
 import UIKit
 
-final class MovieQuizViewController: UIViewController, QuestionGeneratorDelegate {
+final class MovieQuizViewController: UIViewController, MovieQuizViewProtocol, QuestionGeneratorDelegate {
     
     // MARK: - UI Elements
     private let questionTitleLabel: UILabel = {
@@ -99,6 +99,7 @@ final class MovieQuizViewController: UIViewController, QuestionGeneratorDelegate
     }()
     
     // MARK: - Private Properties
+    private let presenter = MovieQuizPresenter()
     private var questionGenerator: QuestionGeneratorProtocol?
     private var currentQuestion: QuizQuestion?
     private lazy var alertPresenter = AlertPresenter(viewController: self)
@@ -125,20 +126,6 @@ final class MovieQuizViewController: UIViewController, QuestionGeneratorDelegate
     }
     
     // MARK: - Private Methods
-    private func convert(model: QuizQuestion) -> QuizStepViewModel {
-        return QuizStepViewModel(
-            image: UIImage(data: model.image) ?? UIImage(),
-            question: model.text,
-            questionNumber: "\(currentQuestionIndex + 1)/\(Constants.questionsAmount)"
-        )
-    }
-    
-    private func show(quiz step: QuizStepViewModel) {
-        imageView.image = step.image
-        questionLabel.text = step.question
-        questionNumberLabel.text = step.questionNumber
-    }
-    
     private func showAnswerResult(isCorrect: Bool) {
         answerButtons(isLocked: false)
         imageView.layer.borderWidth = 8
@@ -160,15 +147,15 @@ final class MovieQuizViewController: UIViewController, QuestionGeneratorDelegate
         answerButtons(isLocked: true)
         imageView.layer.borderWidth = 0
         
-        if currentQuestionIndex == Constants.questionsAmount - 1 {
-            statisticsService.store(correct: correctAnswersCount, total: Constants.questionsAmount)
+        if presenter.isLastQuestion() {
+            statisticsService.store(correct: correctAnswersCount, total: presenter.questionsAmount)
             
             let alertModel = AlertModel(
                 title: L10n.resultTitle,
                 text: """
-                \(L10n.resultText): \(correctAnswersCount)/\(Constants.questionsAmount)
+                \(L10n.resultText): \(correctAnswersCount)/\(presenter.questionsAmount)
                 \(L10n.resultTotal): \(statisticsService.gamesCount)
-                \(L10n.resultRecord): \(statisticsService.bestGame.correct)/\(Constants.questionsAmount) (\(statisticsService.bestGame.date.dateTimeString))
+                \(L10n.resultRecord): \(statisticsService.bestGame.correct)/\(presenter.questionsAmount) (\(statisticsService.bestGame.date.dateTimeString))
                 \(L10n.resultAccuracy): \(String(format: "%.2f", statisticsService.totalAccuracy))%
                 """,
                 buttonText: L10n.restartButton
@@ -178,48 +165,15 @@ final class MovieQuizViewController: UIViewController, QuestionGeneratorDelegate
             
             alertPresenter.showAlert(model: alertModel)
         } else {
-            currentQuestionIndex += 1
+            presenter.switchToNextQuestion()
             questionGenerator?.requestNextQuestion()
         }
     }
     
-    private func answerButtons(isLocked: Bool) {
-        noButton.isEnabled = isLocked
-        yesButton.isEnabled = isLocked
-    }
-    
     private func restartQuiz() {
-        currentQuestionIndex = 0
+        presenter.resetQuestionIndex()
         correctAnswersCount = 0
         questionGenerator?.requestNextQuestion()
-    }
-    
-    private func showActivityIndicator() {
-        activityIndicator.isHidden = false
-        activityIndicator.startAnimating()
-    }
-    
-    private func hideActivityIndicator() {
-        activityIndicator.stopAnimating()
-        activityIndicator.isHidden = true
-    }
-    
-    private func showNetworkError(message: String) {
-        hideActivityIndicator()
-        
-        let alertModel = AlertModel(
-            title: L10n.errorTitle,
-            text: "\(L10n.errorMessage):\n\(message)",
-            buttonText: L10n.restartButton
-        ) { [weak self] in
-            guard let self = self else { return }
-            
-            self.currentQuestionIndex = 0
-            self.correctAnswersCount = 0
-            self.questionGenerator?.requestNextQuestion()
-        }
-        
-        alertPresenter.showAlert(model: alertModel)
     }
     
     @objc private func noButtonTapped() {
@@ -236,11 +190,50 @@ final class MovieQuizViewController: UIViewController, QuestionGeneratorDelegate
         showAnswerResult(isCorrect: givenAnswer == true)
     }
     
+    func show(quiz step: QuizStepViewModel) {
+        imageView.image = step.image
+        questionLabel.text = step.question
+        questionNumberLabel.text = step.questionNumber
+    }
+    
+    func answerButtons(isLocked: Bool) {
+        noButton.isEnabled = isLocked
+        yesButton.isEnabled = isLocked
+    }
+    
+    func showActivityIndicator() {
+        activityIndicator.isHidden = false
+        activityIndicator.startAnimating()
+    }
+    
+    func hideActivityIndicator() {
+        activityIndicator.stopAnimating()
+        activityIndicator.isHidden = true
+    }
+    
+    func showNetworkError(message: String) {
+        hideActivityIndicator()
+        
+        let alertModel = AlertModel(
+            title: L10n.errorTitle,
+            text: "\(L10n.errorMessage):\n\(message)",
+            buttonText: L10n.restartButton
+        ) { [weak self] in
+            guard let self = self else { return }
+            
+            presenter.resetQuestionIndex()
+            self.correctAnswersCount = 0
+            self.questionGenerator?.requestNextQuestion()
+        }
+        
+        alertPresenter.showAlert(model: alertModel)
+    }
+    
     func didReceiveNextQuestion(question: QuizQuestion?) {
         guard let question = question else { return }
         
         currentQuestion = question
-        let viewModel = convert(model: question)
+        let viewModel = presenter.convert(model: question)
         
         DispatchQueue.main.async { [weak self] in
             guard let self = self else { return }
