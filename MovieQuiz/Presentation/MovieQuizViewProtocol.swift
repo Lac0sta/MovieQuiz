@@ -12,5 +12,5 @@ protocol MovieQuizViewProtocol {
     func showNetworkError(message: String)
     func showActivityIndicator()
     func hideActivityIndicator()
-    func answerButtons(isLocked: Bool)
+    func answerButtons(isEnabled: Bool)
 }

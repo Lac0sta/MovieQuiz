@@ -7,7 +7,7 @@
 
 import UIKit
 
-final class MovieQuizViewController: UIViewController, MovieQuizViewProtocol, QuestionGeneratorDelegate {
+final class MovieQuizViewController: UIViewController, MovieQuizViewProtocol {
     
     // MARK: - UI Elements
     private let questionTitleLabel: UILabel = {
@@ -99,17 +99,18 @@ final class MovieQuizViewController: UIViewController, MovieQuizViewProtocol, Qu
     }()
     
     // MARK: - Private Properties
-    private let presenter = MovieQuizPresenter()
-    private var questionGenerator: QuestionGeneratorProtocol?
-    private var currentQuestion: QuizQuestion?
-    private lazy var alertPresenter = AlertPresenter(viewController: self)
-    private var statisticsService: StatisticsServiceProtocol = StatisticsService()
-    private var currentQuestionIndex = 0
-    private var correctAnswersCount = 0
+    private var presenter: MovieQuizPresenter!
+    var statisticsService: StatisticsServiceProtocol = StatisticsService()
     
     // MARK: - Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        presenter = MovieQuizPresenter(
+            view: self,
+            moviesLoader: MoviesLoader(),
+            alertPresenter: AlertPresenter(viewController: self)
+        )
         
         view.backgroundColor = .ypBackground
         
@@ -117,77 +118,15 @@ final class MovieQuizViewController: UIViewController, MovieQuizViewProtocol, Qu
         setupButtonsStackView()
         setupContentStackView()
         setupUI()
-        
-        let questionGenerator = QuestionGenerator(moviesLoader: MoviesLoader(), delegate: self)
-        self.questionGenerator = questionGenerator
-        
-        showActivityIndicator()
-        questionGenerator.loadData()
     }
     
     // MARK: - Private Methods
-    private func showAnswerResult(isCorrect: Bool) {
-        answerButtons(isLocked: false)
-        imageView.layer.borderWidth = 8
-        
-        if isCorrect {
-            correctAnswersCount += 1
-            imageView.layer.borderColor = UIColor.ypGreen.cgColor
-        } else {
-            imageView.layer.borderColor = UIColor.ypRed.cgColor
-        }
-        
-        DispatchQueue.main.asyncAfter(deadline: .now() + Constants.timeoutForAnswer) { [weak self] in
-            guard let self = self else { return }
-            self.showNextQuestionOrResults()
-        }
-    }
-    
-    private func showNextQuestionOrResults() {
-        answerButtons(isLocked: true)
-        imageView.layer.borderWidth = 0
-        
-        if presenter.isLastQuestion() {
-            statisticsService.store(correct: correctAnswersCount, total: presenter.questionsAmount)
-            
-            let alertModel = AlertModel(
-                title: L10n.resultTitle,
-                text: """
-                \(L10n.resultText): \(correctAnswersCount)/\(presenter.questionsAmount)
-                \(L10n.resultTotal): \(statisticsService.gamesCount)
-                \(L10n.resultRecord): \(statisticsService.bestGame.correct)/\(presenter.questionsAmount) (\(statisticsService.bestGame.date.dateTimeString))
-                \(L10n.resultAccuracy): \(String(format: "%.2f", statisticsService.totalAccuracy))%
-                """,
-                buttonText: L10n.restartButton
-            ) { [weak self] in
-                self?.restartQuiz()
-            }
-            
-            alertPresenter.showAlert(model: alertModel)
-        } else {
-            presenter.switchToNextQuestion()
-            questionGenerator?.requestNextQuestion()
-        }
-    }
-    
-    private func restartQuiz() {
-        presenter.resetQuestionIndex()
-        correctAnswersCount = 0
-        questionGenerator?.requestNextQuestion()
-    }
-    
     @objc private func noButtonTapped() {
-        guard let currentQuestion = currentQuestion else { return }
-        let givenAnswer = currentQuestion.correctAnswer
-        
-        showAnswerResult(isCorrect: givenAnswer == false)
+        presenter.noButtonTapped()
     }
     
     @objc private func yesButtonTapped() {
-        guard let currentQuestion = currentQuestion else { return }
-        let givenAnswer = currentQuestion.correctAnswer
-        
-        showAnswerResult(isCorrect: givenAnswer == true)
+        presenter.yesButtonTapped()
     }
     
     func show(quiz step: QuizStepViewModel) {
@@ -196,9 +135,9 @@ final class MovieQuizViewController: UIViewController, MovieQuizViewProtocol, Qu
         questionNumberLabel.text = step.questionNumber
     }
     
-    func answerButtons(isLocked: Bool) {
-        noButton.isEnabled = isLocked
-        yesButton.isEnabled = isLocked
+    func answerButtons(isEnabled: Bool) {
+        noButton.isEnabled = isEnabled
+        yesButton.isEnabled = isEnabled
     }
     
     func showActivityIndicator() {
@@ -211,6 +150,30 @@ final class MovieQuizViewController: UIViewController, MovieQuizViewProtocol, Qu
         activityIndicator.isHidden = true
     }
     
+    func highlightImageBorder(isCorrectAnswer: Bool) {
+        imageView.layer.borderWidth = 8
+        imageView.layer.borderColor = isCorrectAnswer ? UIColor.ypGreen.cgColor : UIColor.ypRed.cgColor
+    }
+    
+    func resetImageBorder() {
+        imageView.layer.borderWidth = 0
+    }
+    
+    func makeQuizResultsSummary() -> String {
+        let bestGame = statisticsService.bestGame
+        
+        let currentGameResultLine = "\(L10n.resultText): \(presenter.correctAnswersCount)/\(presenter.questionsAmount)"
+        let totalGamesPlayedLine = "\(L10n.resultTotal): \(statisticsService.gamesCount)"
+        let bestGameLine = "\(L10n.resultRecord): \(bestGame.correct)/\(presenter.questionsAmount) (\(bestGame.date.dateTimeString))"
+        let averageAccuracyLine = "\(L10n.resultAccuracy): \(String(format: "%.2f", statisticsService.totalAccuracy))%"
+        
+        let resultMessage = [
+            currentGameResultLine, totalGamesPlayedLine, bestGameLine, averageAccuracyLine
+        ].joined(separator: "\n")
+        
+        return resultMessage
+    }
+    
     func showNetworkError(message: String) {
         hideActivityIndicator()
         
@@ -221,33 +184,23 @@ final class MovieQuizViewController: UIViewController, MovieQuizViewProtocol, Qu
         ) { [weak self] in
             guard let self = self else { return }
             
-            presenter.resetQuestionIndex()
-            self.correctAnswersCount = 0
-            self.questionGenerator?.requestNextQuestion()
+            self.presenter.restartQuiz()
         }
         
-        alertPresenter.showAlert(model: alertModel)
+        presenter.alertPresenter.showAlert(model: alertModel)
     }
     
-    func didReceiveNextQuestion(question: QuizQuestion?) {
-        guard let question = question else { return }
-        
-        currentQuestion = question
-        let viewModel = presenter.convert(model: question)
-        
-        DispatchQueue.main.async { [weak self] in
+    func showFinalResults(message: String) {
+        let alertModel = AlertModel(
+            title: L10n.resultTitle,
+            text: message,
+            buttonText: L10n.restartButton
+        ) { [weak self] in
             guard let self = self else { return }
-            self.show(quiz: viewModel)
+            self.presenter.restartQuiz()
         }
-    }
-    
-    func didLoadDataFromServer() {
-        hideActivityIndicator()
-        questionGenerator?.requestNextQuestion()
-    }
-    
-    func didFailToLoadData(with error: Error) {
-        showNetworkError(message: error.localizedDescription)
+        
+        presenter.alertPresenter.showAlert(model: alertModel)
     }
     
     // MARK: - Setup Methods
