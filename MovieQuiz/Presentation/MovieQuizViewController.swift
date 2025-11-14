@@ -99,18 +99,11 @@ final class MovieQuizViewController: UIViewController, MovieQuizViewProtocol {
     }()
     
     // MARK: - Private Properties
-    private var presenter: MovieQuizPresenter!
-    var statisticsService: StatisticsServiceProtocol = StatisticsService()
+    private var presenter: MovieQuizPresenting!
     
     // MARK: - Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
-        
-        presenter = MovieQuizPresenter(
-            view: self,
-            moviesLoader: MoviesLoader(),
-            alertPresenter: AlertPresenter(viewController: self)
-        )
         
         view.backgroundColor = .ypBackground
         
@@ -118,6 +111,8 @@ final class MovieQuizViewController: UIViewController, MovieQuizViewProtocol {
         setupButtonsStackView()
         setupContentStackView()
         setupUI()
+        
+        presenter.viewDidLoad()
     }
     
     // MARK: - Private Methods
@@ -127,6 +122,10 @@ final class MovieQuizViewController: UIViewController, MovieQuizViewProtocol {
     
     @objc private func yesButtonTapped() {
         presenter.yesButtonTapped()
+    }
+    
+    func configure(presenter: MovieQuizPresenting) {
+        self.presenter = presenter
     }
     
     func show(quiz step: QuizStepViewModel) {
@@ -159,21 +158,6 @@ final class MovieQuizViewController: UIViewController, MovieQuizViewProtocol {
         imageView.layer.borderWidth = 0
     }
     
-    func makeQuizResultsSummary() -> String {
-        let bestGame = statisticsService.bestGame
-        
-        let currentGameResultLine = "\(L10n.resultText): \(presenter.correctAnswersCount)/\(presenter.questionsAmount)"
-        let totalGamesPlayedLine = "\(L10n.resultTotal): \(statisticsService.gamesCount)"
-        let bestGameLine = "\(L10n.resultRecord): \(bestGame.correct)/\(presenter.questionsAmount) (\(bestGame.date.dateTimeString))"
-        let averageAccuracyLine = "\(L10n.resultAccuracy): \(String(format: "%.2f", statisticsService.totalAccuracy))%"
-        
-        let resultMessage = [
-            currentGameResultLine, totalGamesPlayedLine, bestGameLine, averageAccuracyLine
-        ].joined(separator: "\n")
-        
-        return resultMessage
-    }
-    
     func showNetworkError(message: String) {
         hideActivityIndicator()
         
@@ -187,7 +171,7 @@ final class MovieQuizViewController: UIViewController, MovieQuizViewProtocol {
             self.presenter.restartQuiz()
         }
         
-        presenter.alertPresenter.showAlert(model: alertModel)
+        presenter.showAlert(model: alertModel)
     }
     
     func showFinalResults(message: String) {
@@ -200,7 +184,7 @@ final class MovieQuizViewController: UIViewController, MovieQuizViewProtocol {
             self.presenter.restartQuiz()
         }
         
-        presenter.alertPresenter.showAlert(model: alertModel)
+        presenter.showAlert(model: alertModel)
     }
     
     // MARK: - Setup Methods

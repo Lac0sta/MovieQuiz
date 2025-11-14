@@ -7,30 +7,33 @@
 
 import UIKit
 
-final class MovieQuizPresenter: QuestionGeneratorDelegate {
+final class MovieQuizPresenter: MovieQuizPresenting {
     
+    private let alertPresenter: AlertPresentingProtocol
+    private let questionGenerator: QuestionGeneratorProtocol
+    private let statisticsService: StatisticsServiceProtocol
+    private let questionsAmount: Int
+    private(set) var correctAnswersCount = 0
     private var currentQuestionIndex = 0
-    var alertPresenter: AlertPresenter
-    private var questionGenerator: QuestionGeneratorProtocol?
     private var currentQuestion: QuizQuestion?
-    var correctAnswersCount = 0
-    let questionsAmount = Constants.questionsAmount
-    weak var view: MovieQuizViewController?
+    
+    weak var view: MovieQuizViewProtocol?
     
     init(
-        view: MovieQuizViewController,
-        moviesLoader: MoviesLoadingProtocol = MoviesLoader(),
-        alertPresenter: AlertPresenter
+        alertPresenter: AlertPresentingProtocol,
+        questionGenerator: QuestionGeneratorProtocol,
+        statisticsService: StatisticsServiceProtocol,
+        questionsAmount: Int = Constants.questionsAmount
     ) {
-        self.view = view
         self.alertPresenter = alertPresenter
-        self.questionGenerator = QuestionGenerator(
-            moviesLoader: moviesLoader,
-            delegate: self
-        )
-        
-        questionGenerator?.loadData()
-        view.showActivityIndicator()
+        self.questionGenerator = questionGenerator
+        self.statisticsService = statisticsService
+        self.questionsAmount = questionsAmount
+    }
+    
+    func viewDidLoad() {
+        view?.showActivityIndicator()
+        questionGenerator.loadData()
     }
     
     func isLastQuestion() -> Bool {
@@ -62,7 +65,7 @@ final class MovieQuizPresenter: QuestionGeneratorDelegate {
     func restartQuiz() {
         resetQuestionIndex()
         correctAnswersCount = 0
-        questionGenerator?.requestNextQuestion()
+        questionGenerator.requestNextQuestion()
     }
     
     func yesButtonTapped() {
@@ -73,18 +76,61 @@ final class MovieQuizPresenter: QuestionGeneratorDelegate {
         processAnswer(isYes: false)
     }
     
-    func proceedToNextQuestionOrResults() {
+    func showAlert(model: AlertModel) {
+        alertPresenter.showAlert(model: model)
+    }
+    
+    // MARK: - Private Methods
+    private func processAnswer(isYes: Bool) {
+        guard let currentQuestion = currentQuestion else { return }
+        
+        let givenAnswer = isYes
+        let correctAnswer = currentQuestion.correctAnswer
+        
+        handleAnswer(isCorrect: givenAnswer == correctAnswer)
+    }
+    
+    private func proceedToNextQuestionOrResults() {
         if isLastQuestion() {
-            view?.statisticsService.store(correct: correctAnswersCount, total: questionsAmount)
-            let resultMessage = view?.makeQuizResultsSummary() ?? ""
+            statisticsService.store(correct: correctAnswersCount, total: questionsAmount)
+            let resultMessage = makeQuizResultsSummary()
             view?.showFinalResults(message: resultMessage)
         } else {
             switchToNextQuestion()
-            questionGenerator?.requestNextQuestion()
+            questionGenerator.requestNextQuestion()
         }
     }
     
-    // MARK: - QuestionGeneratorDelegate
+    private func handleAnswer(isCorrect: Bool) {
+        updateScore(isCorrect: isCorrect)
+        view?.highlightImageBorder(isCorrectAnswer: isCorrect)
+        view?.answerButtons(isEnabled: false)
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + Constants.timeoutForAnswer) { [weak self] in
+            guard let self = self else { return }
+            self.view?.resetImageBorder()
+            self.proceedToNextQuestionOrResults()
+        }
+    }
+    
+    private func makeQuizResultsSummary() -> String {
+        let bestGame = statisticsService.bestGame
+        
+        let currentGameResultLine = "\(L10n.resultText): \(correctAnswersCount)/\(questionsAmount)"
+        let totalGamesPlayedLine = "\(L10n.resultTotal): \(statisticsService.gamesCount)"
+        let bestGameLine = "\(L10n.resultRecord): \(bestGame.correct)/\(questionsAmount) (\(bestGame.date.dateTimeString))"
+        let averageAccuracyLine = "\(L10n.resultAccuracy): \(String(format: "%.2f", statisticsService.totalAccuracy))%"
+        
+        let resultMessage = [
+            currentGameResultLine, totalGamesPlayedLine, bestGameLine, averageAccuracyLine
+        ].joined(separator: "\n")
+        
+        return resultMessage
+    }
+}
+
+// MARK: - QuestionGeneratorDelegate
+extension MovieQuizPresenter: QuestionGeneratorDelegate {
     func didReceiveNextQuestion(question: QuizQuestion?) {
         guard let question = question else { return }
         currentQuestion = question
@@ -100,33 +146,11 @@ final class MovieQuizPresenter: QuestionGeneratorDelegate {
     
     func didLoadDataFromServer() {
         view?.hideActivityIndicator()
-        questionGenerator?.requestNextQuestion()
+        questionGenerator.requestNextQuestion()
     }
     
     func didFailToLoadData(with error: Error) {
         let message = error.localizedDescription
         view?.showNetworkError(message: message)
-    }
-    
-    // MARK: - Private Methods
-    private func processAnswer(isYes: Bool) {
-        guard let currentQuestion = currentQuestion else { return }
-        
-        let givenAnswer = isYes
-        let correctAnswer = currentQuestion.correctAnswer
-        
-        handleAnswer(isCorrect: givenAnswer == correctAnswer)
-    }
-    
-    private func handleAnswer(isCorrect: Bool) {
-        updateScore(isCorrect: isCorrect)
-        view?.highlightImageBorder(isCorrectAnswer: isCorrect)
-        view?.answerButtons(isEnabled: false)
-        
-        DispatchQueue.main.asyncAfter(deadline: .now() + Constants.timeoutForAnswer) { [weak self] in
-            guard let self = self else { return }
-            self.view?.resetImageBorder()
-            self.proceedToNextQuestionOrResults()
-        }
     }
 }
