@@ -16,7 +16,7 @@ final class QuestionGenerator: QuestionGeneratorProtocol {
     private var usedMovieIndices: Set<Int> = []
     
     // MARK: - Delegate
-    private weak var delegate: QuestionGeneratorDelegate?
+    weak var delegate: QuestionGeneratorDelegate?
     
     // MARK: - Init
     init(
